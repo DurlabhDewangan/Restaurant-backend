@@ -2,13 +2,27 @@ import express from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Allow only your frontend URL for CORS
+app.use(cors({
+  origin: 'https://restaurant-frontend-three-beryl.vercel.app', // replace with your actual frontend URL
+}));
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors());
+
+// Middleware to parse JSON body
 app.use(express.json());
+
+// Simple health check route
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
 
 // Reservation endpoint
 app.post('/send-reservation', async (req, res) => {
@@ -27,6 +41,8 @@ app.post('/send-reservation', async (req, res) => {
     to: process.env.EMAIL_USER,
     subject: 'New Table Reservation Request',
     text: `
+New Reservation Details:
+
 Name: ${fullName}
 Email: ${email}
 Phone: ${phone}
@@ -63,6 +79,8 @@ app.post('/send-contact', async (req, res) => {
     to: process.env.EMAIL_USER,
     subject: `New Contact Form Submission: ${subject}`,
     text: `
+New Contact Form Submission:
+
 Name: ${name}
 Email: ${email}
 Phone: ${phone || 'N/A'}
@@ -80,6 +98,7 @@ Message: ${message}
   }
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
